@@ -35,3 +35,8 @@ line = nonBlankLine | blankLine;
 (*Chapter 2.3 Insecure Characters*)
 
 (*ignored, because this specifies that the Unicode character *+0000 has to be replaced with the Replacement Character U+FFFD*)
+
+(*Chapter 3 Blocks and Inlines*)
+
+(*parsing of blocks take precedence over parsing of inlines*)
+block = containerBlock | leafBlock;
