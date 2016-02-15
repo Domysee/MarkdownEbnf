@@ -1,6 +1,6 @@
 (* This is a Markdown Specification based on CommonMark (http://spec.commonmark.org/0.24/) *)
 
-(*Chapter 2*)
+(*Chapter 2.1 Characters and Lines*)
 
 character = (*Unicode code point*);
 characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
@@ -27,3 +27,11 @@ lineEnding = newline | carriageReturn;
 nonBlankLine = characterWithoutLinebreakSpaceTab, {characterWithoutLinebreakSpaceTab}, lineEnding;
 blankLine = {(space | tab)}, lineEnding;
 line = nonBlankLine | blankLine;
+
+(*Chapter 2.2 Tabs*)
+
+(*ignored, because this specifies how tabs are interpreted, not how they are parsed*)
+
+(*Chapter 2.3 Insecure Characters*)
+
+(*ignored, because this specifies that the Unicode character *+0000 has to be replaced with the Replacement Character U+FFFD*)
