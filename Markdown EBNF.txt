@@ -24,9 +24,11 @@ whitespace = whitespaceCharacter, {whitespaceCharacter};
 unicodeWhitespace = unicodeWhitespaceCharacter, {unicodeWhitespaceCharacter};
 
 lineEnding = newline | carriageReturn;
-nonBlankLine = characterWithoutLinebreakSpaceTab, {characterWithoutLinebreakSpaceTab}, lineEnding;
+nonBlankLine = characterWithoutLinebreakSpaceTab, {characterWithoutLinebreak}, lineEnding;
 blankLine = {(space | tab)}, lineEnding;
 line = nonBlankLine | blankLine;
+
+textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
 
 (*Chapter 2.2 Tabs*)
 
@@ -40,3 +42,45 @@ line = nonBlankLine | blankLine;
 
 (*parsing of blocks take precedence over parsing of inlines*)
 block = containerBlock | leafBlock;
+
+(*Chapter 4 Leaf Blocks*)
+
+leafBlock = thematicBreak | atxHeading | setextHeading;
+containerBlock = (*TODO*)
+inline = (*TODO*)
+paragraphMax3SpacesIndent = (*TODO*) (*"The heading content can be indented up to three spaces"*)
+
+(*this takes precedence over thematicBreak: "If a line of dashes that meets the above conditions for being a thematic break could also be interpreted as the underline of a setext heading, the interpretation as a setext heading takes precedence."*)
+level1SetextHeadingUnderline = 3 * [space], ("=", {"="}), {space}, lineEnding;
+level2SetextHeadingUnderline = 3 * [space], ("-", {"-"}), {space}, lineEnding;
+setextHeadingLevel1 = paragraphMax3SpacesIndent, level1SetextHeadingUnderline;
+setextHeadingLevel2 = paragraphMax3SpacesIndent, level2SetextHeadingUnderline;
+
+thematicBreak = (3 * [space]), (3 * ([space], "-"), {([space], "-")}) | (3 * ([space], "_"), {([space], "_")}) | (3 * ([space], "*"), {([space], "*")}), lineEnding;
+
+atxClosingSequence = [space, {"#"}, {space}], lineEnding;
+atxHeading1 = 3 * [space], "#", space, inline, atxClosingSequence;
+atxHeading2 = 3 * [space], "##", space, inline, atxClosingSequence;
+atxHeading3 = 3 * [space], "###", space, inline, atxClosingSequence;
+atxHeading4 = 3 * [space], "####", space, inline, atxClosingSequence;
+atxHeading5 = 3 * [space], "#####", space, inline, atxClosingSequence;
+atxHeading6 = 3 * [space], "######", space, inline, atxClosingSequence;
+atxHeading = atxHeading1 | atxHeading2 | atxHeading3 | atxHeading4 | atxHeading5 | atxHeading6;
+
+indentedChunk = (4 * space, {space}, nonBlankLine), {(4 * space, {space}, nonBlankLine)};
+indentedCodeBlock = (indentedChunk, blankLine), {(indentedChunk, blankLine)}, [indentedChunk];
+
+(*the specification allows more than 3 backticks or tildes, but I ignored this deliberately, because then it would be very difficult to match the open and close sequences*)
+(*same with indentation, both of it can be done in interpretation*)
+backtickCodeFence = 3 * "~";
+tildeCodeFence = 3 * "~";
+backtickCodeFenceEndSequence = 3 * [space], backtickCodeFence, {space};
+tildeCodeFenceEndSequence = 3 * [space], tildeCodeFence, {space};
+infoString = textualContent;
+fencedCodeBlock = (3 * [space], backtickCodeFence, [infoString], lineEnding,
+				  {line},
+				  backtickCodeFenceEndSequence | endOfDocument)
+				  |
+				  (3 * [space], tildeCodeFence, [infoString], lineEnding,
+				  line, {line},
+				  tildeCodeFenceEndSequence | endOfDocument);
