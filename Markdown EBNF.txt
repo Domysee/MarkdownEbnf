@@ -1,0 +1,29 @@
+(* This is a Markdown Specification based on CommonMark (http://spec.commonmark.org/0.24/) *)
+
+(*Chapter 2*)
+
+character = (*Unicode code point*);
+characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
+characterWithoutLinebreakSpaceTab = (*Unicode code point except newline (U+000A), carriage return (U+000D), space and tab*);
+
+newline = U+000A;
+carriageReturn = U+000D;
+space = U+0020;
+tab = U+0009;
+lineTabulation = U+000B;
+formFeed = U+000C;
+
+asciiPunctuationCharacter = "!" | '"' | "#" | "$" | "%" | "&" | "'" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | "<" | "=" | ">" | "?" | "@" | "[" | "\" | "]" | "^" | "_" | "`" | "{" | "|" | "}" | "~";
+punctuationCharacter = asciiPunctuationCharacter | (*anything in Unicode classes Pc, Pd, Pe, Pf, Pi, Po, Ps*);
+
+whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
+unicodeWhitespaceCharacter = (*any code point in the Unicode Zs class, or tab, carriageReturn, newline, formFeed*);
+nonWhitespaceCharacter = (*any character that is not a whitespaceCharacter*);
+
+whitespace = whitespaceCharacter, {whitespaceCharacter};
+unicodeWhitespace = unicodeWhitespaceCharacter, {unicodeWhitespaceCharacter};
+
+lineEnding = newline | carriageReturn;
+nonBlankLine = characterWithoutLinebreakSpaceTab, {characterWithoutLinebreakSpaceTab}, lineEnding;
+blankLine = {(space | tab)}, lineEnding;
+line = nonBlankLine | blankLine;
