@@ -14,6 +14,9 @@ lineTabulation = U+000B;
 formFeed = U+000C;
 
 asciiPunctuationCharacter = "!" | '"' | "#" | "$" | "%" | "&" | "'" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | "<" | "=" | ">" | "?" | "@" | "[" | "\" | "]" | "^" | "_" | "`" | "{" | "|" | "}" | "~";
+lowercaseLetters = 
+uppercaseLetters = 
+letters = lowercaseLetters | uppercaseLetters;
 punctuationCharacter = asciiPunctuationCharacter | (*anything in Unicode classes Pc, Pd, Pe, Pf, Pi, Po, Ps*);
 
 whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
@@ -84,3 +87,27 @@ fencedCodeBlock = (3 * [space], backtickCodeFence, [infoString], lineEnding,
 				  (3 * [space], tildeCodeFence, [infoString], lineEnding,
 				  line, {line},
 				  tildeCodeFenceEndSequence | endOfDocument);
+			
+(*TODO: refine this, it is far from correct, but html is not so important, so it has a low priority*)
+htmlStartCondition1 = "<script" | "<pre" | "<style", (space | ">", nonBlankLine) | lineEnding;
+htmlEndCondition1 = "</script>" | "</pre>" | "</style>";
+htmlStartCondition2 = "<!--", line;
+htmlEndCondition2 = "-->";
+htmlStartCondition3 = "<?", line;
+htmlEndCondition3 = "?>";
+htmlStartCondition4 = "<!", UppercaseAsciiLetter, line;
+htmlEndCondition4 = "!>";
+htmlStartCondition5 = "<![CDATA[", line;
+htmlEndCondition5 = ">";
+htmlStartCondition6 = "<", ["/"], (*TODO: insert all tags*);
+htmlEndCondition6 = line, blankLine;
+htmlStartCondition7 = "<", tagName, {whitespace}, lineEnding;
+htmlEndCondition7 = line, blankLine;
+htmlBlock1 = htmlStartCondition1, {line}, htmlEndCondition1;
+htmlBlock2 = htmlStartCondition2, {line}, htmlEndCondition2;
+htmlBlock3 = htmlStartCondition3, {line}, htmlEndCondition3;
+htmlBlock4 = htmlStartCondition4, {line}, htmlEndCondition4;
+htmlBlock5 = htmlStartCondition5, {line}, htmlEndCondition5;
+htmlBlock6 = htmlStartCondition6, {line}, htmlEndCondition6;
+htmlBlock7 = htmlStartCondition7, {line}, htmlEndCondition7;
+htmlBlock = htmlBlock1 | htmlBlock2 | htmlBlock3 | htmlBlock4 | htmlBlock5 | htmlBlock6 | htmlBlock7;
