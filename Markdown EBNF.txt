@@ -114,4 +114,7 @@ htmlBlock7 = htmlStartCondition7, {line}, htmlEndCondition7;
 htmlBlock = htmlBlock1 | htmlBlock2 | htmlBlock3 | htmlBlock4 | htmlBlock5 | htmlBlock6 | htmlBlock7;
 
 linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";
-linkReferenceDefinition = 
+linkDestination = ("<", {nonWhitespaceCharacter}, ">") | (nonWhitespaceCharacter, {nonWhitespaceCharacter});
+linkTitle = ('"', {character}, '"') | ("'", {character}, "'") | ("(", {character}, ")");
+linkReferenceDefinition = indentation, linkLabel, ":", [whitespace], linkDestination, [whitespace], [space, [linkTitle]], {whitespace}, lineEnding;
+
