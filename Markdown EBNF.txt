@@ -118,3 +118,4 @@ linkDestination = ("<", {nonWhitespaceCharacter}, ">") | (nonWhitespaceCharacter
 linkTitle = ('"', {character}, '"') | ("'", {character}, "'") | ("(", {character}, ")");
 linkReferenceDefinition = indentation, linkLabel, ":", [whitespace], linkDestination, [whitespace], [space, [linkTitle]], {whitespace}, lineEnding;
 
+paragraph = nonBlankLine, {nonBlankLine};	(*lowest priority of block elements*)
