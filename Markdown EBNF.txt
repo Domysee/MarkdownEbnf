@@ -32,6 +32,7 @@ blankLine = {(space | tab)}, lineEnding;
 line = nonBlankLine | blankLine;
 
 textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
+indentation = 3 * [space];
 
 (*Chapter 2.2 Tabs*)
 
@@ -54,20 +55,20 @@ inline = (*TODO*)
 paragraphMax3SpacesIndent = (*TODO*) (*"The heading content can be indented up to three spaces"*)
 
 (*this takes precedence over thematicBreak: "If a line of dashes that meets the above conditions for being a thematic break could also be interpreted as the underline of a setext heading, the interpretation as a setext heading takes precedence."*)
-level1SetextHeadingUnderline = 3 * [space], ("=", {"="}), {space}, lineEnding;
-level2SetextHeadingUnderline = 3 * [space], ("-", {"-"}), {space}, lineEnding;
+level1SetextHeadingUnderline = indentation, ("=", {"="}), {space}, lineEnding;
+level2SetextHeadingUnderline = indentation, ("-", {"-"}), {space}, lineEnding;
 setextHeadingLevel1 = paragraphMax3SpacesIndent, level1SetextHeadingUnderline;
 setextHeadingLevel2 = paragraphMax3SpacesIndent, level2SetextHeadingUnderline;
 
-thematicBreak = (3 * [space]), (3 * ([space], "-"), {([space], "-")}) | (3 * ([space], "_"), {([space], "_")}) | (3 * ([space], "*"), {([space], "*")}), lineEnding;
+thematicBreak = (indentation), (3 * ([space], "-"), {([space], "-")}) | (3 * ([space], "_"), {([space], "_")}) | (3 * ([space], "*"), {([space], "*")}), lineEnding;
 
 atxClosingSequence = [space, {"#"}, {space}], lineEnding;
-atxHeading1 = 3 * [space], "#", space, inline, atxClosingSequence;
-atxHeading2 = 3 * [space], "##", space, inline, atxClosingSequence;
-atxHeading3 = 3 * [space], "###", space, inline, atxClosingSequence;
-atxHeading4 = 3 * [space], "####", space, inline, atxClosingSequence;
-atxHeading5 = 3 * [space], "#####", space, inline, atxClosingSequence;
-atxHeading6 = 3 * [space], "######", space, inline, atxClosingSequence;
+atxHeading1 = indentation, "#", space, inline, atxClosingSequence;
+atxHeading2 = indentation, "##", space, inline, atxClosingSequence;
+atxHeading3 = indentation, "###", space, inline, atxClosingSequence;
+atxHeading4 = indentation, "####", space, inline, atxClosingSequence;
+atxHeading5 = indentation, "#####", space, inline, atxClosingSequence;
+atxHeading6 = indentation, "######", space, inline, atxClosingSequence;
 atxHeading = atxHeading1 | atxHeading2 | atxHeading3 | atxHeading4 | atxHeading5 | atxHeading6;
 
 indentedChunk = (4 * space, {space}, nonBlankLine), {(4 * space, {space}, nonBlankLine)};
@@ -77,14 +78,14 @@ indentedCodeBlock = (indentedChunk, blankLine), {(indentedChunk, blankLine)}, [i
 (*same with indentation, both of it can be done in interpretation*)
 backtickCodeFence = 3 * "~";
 tildeCodeFence = 3 * "~";
-backtickCodeFenceEndSequence = 3 * [space], backtickCodeFence, {space};
-tildeCodeFenceEndSequence = 3 * [space], tildeCodeFence, {space};
+backtickCodeFenceEndSequence = indentation, backtickCodeFence, {space};
+tildeCodeFenceEndSequence = indentation, tildeCodeFence, {space};
 infoString = textualContent;
-fencedCodeBlock = (3 * [space], backtickCodeFence, [infoString], lineEnding,
+fencedCodeBlock = (indentation, backtickCodeFence, [infoString], lineEnding,
 				  {line},
 				  backtickCodeFenceEndSequence | endOfDocument)
 				  |
-				  (3 * [space], tildeCodeFence, [infoString], lineEnding,
+				  (indentation, tildeCodeFence, [infoString], lineEnding,
 				  line, {line},
 				  tildeCodeFenceEndSequence | endOfDocument);
 			
@@ -111,3 +112,6 @@ htmlBlock5 = htmlStartCondition5, {line}, htmlEndCondition5;
 htmlBlock6 = htmlStartCondition6, {line}, htmlEndCondition6;
 htmlBlock7 = htmlStartCondition7, {line}, htmlEndCondition7;
 htmlBlock = htmlBlock1 | htmlBlock2 | htmlBlock3 | htmlBlock4 | htmlBlock5 | htmlBlock6 | htmlBlock7;
+
+linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";
+linkReferenceDefinition = 
