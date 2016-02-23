@@ -17,6 +17,7 @@ asciiPunctuationCharacter = "!" | '"' | "#" | "$" | "%" | "&" | "'" | "(" | ")" 
 lowercaseLetters = 
 uppercaseLetters = 
 letters = lowercaseLetters | uppercaseLetters;
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 punctuationCharacter = asciiPunctuationCharacter | (*anything in Unicode classes Pc, Pd, Pe, Pf, Pi, Po, Ps*);
 
 whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
@@ -119,3 +120,16 @@ linkTitle = ('"', {character}, '"') | ("'", {character}, "'") | ("(", {character
 linkReferenceDefinition = indentation, linkLabel, ":", [whitespace], linkDestination, [whitespace], [space, [linkTitle]], {whitespace}, lineEnding;
 
 paragraph = nonBlankLine, {nonBlankLine};	(*lowest priority of block elements*)
+
+(*Chapter 5 Container Blocks*)
+
+blockQuteMarker = indentation, ">", [" "];
+blockQuotes = blockQuteMarker, line, {blockQuteMarker, line};   (*2. Laziness is ignored for now*)
+
+bulletListMarker = "-" | "+" | "*";
+orderedListMarker = digit, 8 * [digit], "." | ")";
+listMarker = bulletListMarker | orderedListMarker;
+bulletListItem = bulletListMarker, space, 3 * space, indentedBlock | indentedContainer;   (*indentedBlock and indentedContainer are indented by the length of listMarker + 1-4 + the amount of spaces after listMarker*)
+orderedListItem = orderedListMarker, space, 3 * space, indentedBlock | indentedContainer;   (*indentedBlock and indentedContainer are indented by the length of listMarker + 1-4 + the amount of spaces after listMarker*)
+orderedList = orderedListItem, [blankLine], {orderedListItem, [blankLine]};
+bulletList = bulletListItem, [blankLine], {bulletListItem, [blankLine]};
