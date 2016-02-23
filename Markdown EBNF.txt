@@ -17,8 +17,12 @@ asciiPunctuationCharacter = "!" | '"' | "#" | "$" | "%" | "&" | "'" | "(" | ")" 
 lowercaseLetters = 
 uppercaseLetters = 
 letters = lowercaseLetters | uppercaseLetters;
+asciiLetter = 
+asciiDigit = 
+nonAsciiWhitespaceOrControlOrLessThanOrGreaterThanCharacter = ;    (*characters excluding ascii whitespace and ascii control characters and < and >*)
 digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 punctuationCharacter = asciiPunctuationCharacter | (*anything in Unicode classes Pc, Pd, Pe, Pf, Pi, Po, Ps*);
+nonPunctuationCharacter = 
 
 whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
 unicodeWhitespaceCharacter = (*any code point in the Unicode Zs class, or tab, carriageReturn, newline, formFeed*);
@@ -26,6 +30,9 @@ nonWhitespaceCharacter = (*any character that is not a whitespaceCharacter*);
 
 whitespace = whitespaceCharacter, {whitespaceCharacter};
 unicodeWhitespace = unicodeWhitespaceCharacter, {unicodeWhitespaceCharacter};
+nonUnicodeWhitespace = nonWhitespaceCharacter, {nonWhitespaceCharacter};
+
+nonUnicodeWhitespacenonPunctuationCharacter = (*anything else but punctuationCharacter and unicodeWhitespace*)
 
 lineEnding = newline | carriageReturn;
 nonBlankLine = characterWithoutLinebreakSpaceTab, {characterWithoutLinebreak}, lineEnding;
@@ -114,11 +121,6 @@ htmlBlock6 = htmlStartCondition6, {line}, htmlEndCondition6;
 htmlBlock7 = htmlStartCondition7, {line}, htmlEndCondition7;
 htmlBlock = htmlBlock1 | htmlBlock2 | htmlBlock3 | htmlBlock4 | htmlBlock5 | htmlBlock6 | htmlBlock7;
 
-linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";
-linkDestination = ("<", {nonWhitespaceCharacter}, ">") | (nonWhitespaceCharacter, {nonWhitespaceCharacter});
-linkTitle = ('"', {character}, '"') | ("'", {character}, "'") | ("(", {character}, ")");
-linkReferenceDefinition = indentation, linkLabel, ":", [whitespace], linkDestination, [whitespace], [space, [linkTitle]], {whitespace}, lineEnding;
-
 paragraph = nonBlankLine, {nonBlankLine};	(*lowest priority of block elements*)
 
 (*Chapter 5 Container Blocks*)
@@ -133,3 +135,56 @@ bulletListItem = bulletListMarker, space, 3 * space, indentedBlock | indentedCon
 orderedListItem = orderedListMarker, space, 3 * space, indentedBlock | indentedContainer;   (*indentedBlock and indentedContainer are indented by the length of listMarker + 1-4 + the amount of spaces after listMarker*)
 orderedList = orderedListItem, [blankLine], {orderedListItem, [blankLine]};
 bulletList = bulletListItem, [blankLine], {bulletListItem, [blankLine]};
+
+(*Chapter 6 Inlines*)
+
+escapedAsciiPunctuationCharacter = "\", asciiPunctuationCharacter;
+
+(*Entity and numeric character references are relatively useless, so they are not implemented for now*)
+entityReference = 
+decimalNumericCharacter = 
+hexadecimalNumericCharacter = 
+
+backtickString = "`", {"`"};
+codeSpan = backtickString, textualContent, backtickString;  (*TODO: the 2 backtickStrings must be of the same length*)
+
+(*the possibility that underline ("_") can create emphasis is deliberately ignored for now*) 
+delimiterRun = "*", {"*"};
+delimiterRunLeftFlanking = (delimiterRun, nonUnicodeWhitespacenonPunctuationCharacter) | ((punctuationCharacter | unicodeWhitespace), delimiterRun, nonUnicodeWhitespace);
+delimiterRunRightFlanking = (nonUnicodeWhitespace, delimiterRun, (unicodeWhitespace | punctuationCharacter)) | (nonUnicodeWhitespacenonPunctuationCharacter, delimiterRun);
+openEmphasis = ("*", nonUnicodeWhitespacenonPunctuationCharacter) | ((punctuationCharacter | unicodeWhitespace), "*", nonUnicodeWhitespace);
+closeEmphasis = (nonUnicodeWhitespace, "*", (unicodeWhitespace | punctuationCharacter)) | (nonUnicodeWhitespacenonPunctuationCharacter, "*");
+openStrong = ("**", nonUnicodeWhitespacenonPunctuationCharacter) | ((punctuationCharacter | unicodeWhitespace), "**", nonUnicodeWhitespace);
+closeStrong = (nonUnicodeWhitespace, "**", (unicodeWhitespace | punctuationCharacter)) | (nonUnicodeWhitespacenonPunctuationCharacter, "**");
+emphasis = openEmphasis, inline, closeEmphasis;
+strong = openStrong, inline, closeStrong;
+
+linkText = "[", inlinesExceptLink, "]"; (*This uses the outer most link definition, contrary to the specification, which says the inner most one should be used, TODO*)
+linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";
+linkDestination = ("<", {nonWhitespaceCharacter}, ">") | (nonWhitespaceCharacter, {nonWhitespaceCharacter});
+linkTitle = ('"', {character}, '"') | ("'", {character}, "'") | ("(", {character}, ")");
+inlineLink = linkText, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
+fullReferenceLink = linkText, linkLabel;
+collapsedReferenceLink = linkLabel, "[]";
+shortcutReferenceLink = linkLabel;
+
+linkReferenceDefinition = indentation, linkLabel, ":", [whitespace], linkDestination, [whitespace], [space, [linkTitle]], {whitespace}, lineEnding;
+
+imageDescription = "![", inlines, "]";  (*This uses the outer most image description, contrary to the specification, which says the inner most one should be used, TODO*)
+inlineImage = imageDescription, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
+fullReferenceImage = imageDescription, linkLabel;
+collapsedReferenceImage = linkLabel, "[]";
+shortcutReferenceImage = linkLabel;
+
+scheme = asciiLetter, (asciiLetter | asciiDigit | "+" | "." | "-"), 30 * [asciiLetter | asciiDigit | "+" | "." | "-"];
+absoluteUri = scheme, ":", {nonAsciiWhitespaceOrControlOrLessThanOrGreaterThanCharacter};
+autolinkLabel = absoluteUri;
+autolink = "<", autolinkLabel, ">";
+
+emailAddress = 
+emailAutolink = "<", emailAddress, ">";
+
+(*Raw HTML is deliberately ignored for now*)
+
+hardLineBreak = (space, space, {space}, lineEnding) | ("\", lineEnding);
+softLineBreak = lineEnding;
