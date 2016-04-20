@@ -1,10 +1,98 @@
 (* This is a Markdown Specification based on CommonMark (http://spec.commonmark.org/0.24/) *)
 
+(*
+Skipped:
+Optional Intendations before/after
+Multiple Options for the same Thing (e.g. *** and --- indicate a Thematic Break, but only --- is considered here)
+Sometimes, a blank Line must be present after a Block Element to distinguish it from other Elements, this could also be the End of the Document, which is ignored. If such a Block Element is at the End, an empty Line has to be added
+*)
+
+Markdown = block, {block};
+
+(*Generic String Terms*)
+
+newline = U+000A;
+carriageReturn = U+000D;
+space = U+0020;
+tab = U+0009;
+lineEnding = newline | carriageReturn;
+characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
+whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
+unicodeWhitespaceCharacter = (*any code point in the Unicode Zs class, or tab, carriageReturn, newline, formFeed*);
+nonWhitespaceCharacter = (*any character that is not a whitespaceCharacter*);
+
+blankLine = {(space | tab)}, lineEnding;
+nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
+
+characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
+textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
+
+(*Start Block Elements*)
+
+block = containerBlock | leafBlock;
+
+(*Start Container Block Elements*)
+
+
+(*End Container Block Elements*)
+
+(*Start Leaf Block Elements*)
+
+(*Setext Headings are ignored*)
+leafBlock = thematicBreak | atxHeading | indentedCodeBlock | fencedCodeBlock | linkReferenceDefinition | paragraph | blankLines;
+
+(*Optional Spaces in between the Characters ommitted*)
+thematicBreak = (3 * "-"), {-}, {space}, lineEnding;
+
+(*Inline Parsing ommitted, for now the Headings can only be simple Text*)
+atxClosingSequence = [space, {"#"}, {space}], lineEnding;	(*May have to be inlined into the atxHeading Specifications, to avoid it matching in another Context*)
+atxHeading1 = "#", space, textualContent, atxClosingSequence;
+atxHeading2 = "##", space, textualContent, atxClosingSequence;
+atxHeading3 = "###", space, textualContent, atxClosingSequence;
+atxHeading4 = "####", space, textualContent, atxClosingSequence;
+atxHeading5 = "#####", space, textualContent, atxClosingSequence;
+atxHeading6 = "######", space, textualContent, atxClosingSequence;
+atxHeading = atxHeading1 | atxHeading2 | atxHeading3 | atxHeading4 | atxHeading5 | atxHeading6;
+
+indentedChunk = (4 * space, {space}, nonBlankLine), {(4 * space, {space}, nonBlankLine)};
+(*Possibility to not have an empty line before or after an indentedCodeBlock ommitted*)
+indentedCodeBlock = blankLine, (indentedChunk, blankLine), {(indentedChunk, blankLine)};
+
+(*Possibility of more than 3 Backticks ommitted*)
+(*Possibility of optional Code Fence Indentation ommitted*)
+fencedCodeBlock = ("```", [infoString], lineEnding,
+				  {line},
+				  "```", lineEnding);
+				  
+(*HTML Blocks ommitted*)
+
+
+(*These are Inlines*)
+linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";	(*TODO: Define that the nonWhitespaceCharacter must not have unescaped square Brackets in this specific Context*)
+(*Second Option*)
+linkDestination = (("(", nonWhitespaceCharacter, {nonWhitespaceCharacter}, ")") | (nonWhitespaceCharacter, {nonWhitespaceCharacter})), {("(", nonWhitespaceCharacter, {nonWhitespaceCharacter}, ")")} | (nonWhitespaceCharacter, {nonWhitespaceCharacter});	(*TODO: Define that the nonWhitespaceCharacter must not have an unescaped parenthesis in this specific Context*)
+(*First Option*)
+linkTitle = ('"', {character}, '"');	(*TODO: Define that the character must not have an unescaped double-quote in this specific Context*)
+
+(*Optional Whitespace ommitted*)
+linkReferenceDefinition = linkLabel, ":", linkDestination, [space, [linkTitle]], {space}, lineEnding;
+
+
+paragraph = nonBlankLine, {nonBlankLine};	(*TODO: Interprete the Lines as Inlines*)
+
+blankLines = blankLine, {blankLine};
+
+(*End Leaf Block Elements*)
+(*End Block Elements*)
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 (*Chapter 2.1 Characters and Lines*)
 
 character = (*Unicode code point*);
 characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
-characterWithoutLinebreakSpaceTab = (*Unicode code point except newline (U+000A), carriage return (U+000D), space and tab*);
 
 newline = U+000A;
 carriageReturn = U+000D;
@@ -35,7 +123,7 @@ nonUnicodeWhitespace = nonWhitespaceCharacter, {nonWhitespaceCharacter};
 nonUnicodeWhitespacenonPunctuationCharacter = (*anything else but punctuationCharacter and unicodeWhitespace*)
 
 lineEnding = newline | carriageReturn;
-nonBlankLine = characterWithoutLinebreakSpaceTab, {characterWithoutLinebreak}, lineEnding;
+nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
 blankLine = {(space | tab)}, lineEnding;
 line = nonBlankLine | blankLine;
 
