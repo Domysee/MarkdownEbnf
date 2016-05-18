@@ -25,7 +25,6 @@ blankLine = {(space | tab)}, lineEnding;
 nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
 
 characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
-textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
 
 (*Start Block Elements*)
 
@@ -100,202 +99,24 @@ blankLines = blankLine, {blankLine};
 
 (*Start Inlines*)
 
+codeSpan = "`", textualContent, "`";
+emphasis = "*", textualContent, "*";
+strongEmphasis = "**", textualContent, "**";
+
+inlineLink = linkText, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
+fullReferenceLink = linkText, linkLabel;
+
+linkText = "[", textualContent, "]";
 linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";	(*TODO: Define that the nonWhitespaceCharacter must not have unescaped square Brackets in this specific Context*)
 (*Second Option*)
-linkDestination = (("(", nonWhitespaceCharacter, {nonWhitespaceCharacter}, ")") | (nonWhitespaceCharacter, {nonWhitespaceCharacter})), {("(", nonWhitespaceCharacter, {nonWhitespaceCharacter}, ")")} | (nonWhitespaceCharacter, {nonWhitespaceCharacter});	(*TODO: Define that the nonWhitespaceCharacter must not have an unescaped parenthesis in this specific Context*)
+linkDestination = "<", nonWhitespaceCharacter, {nonWhitespaceCharacter}, ">";
 (*First Option*)
 linkTitle = ('"', {character}, '"');	(*TODO: Define that the character must not have an unescaped double-quote in this specific Context*)
 
-(*End Inlines*)
+image = imageDescription, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
+imageDescription = "![", textualContent, "]";
 
-
--------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-(*Chapter 2.1 Characters and Lines*)
-
-character = (*Unicode code point*);
-characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
-
-newline = U+000A;
-carriageReturn = U+000D;
-space = U+0020;
-tab = U+0009;
-lineTabulation = U+000B;
-formFeed = U+000C;
-
-asciiPunctuationCharacter = "!" | '"' | "#" | "$" | "%" | "&" | "'" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | "<" | "=" | ">" | "?" | "@" | "[" | "\" | "]" | "^" | "_" | "`" | "{" | "|" | "}" | "~";
-lowercaseLetters = 
-uppercaseLetters = 
-letters = lowercaseLetters | uppercaseLetters;
-asciiLetter = 
-asciiDigit = 
-nonAsciiWhitespaceOrControlOrLessThanOrGreaterThanCharacter = ;    (*characters excluding ascii whitespace and ascii control characters and < and >*)
-digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
-punctuationCharacter = asciiPunctuationCharacter | (*anything in Unicode classes Pc, Pd, Pe, Pf, Pi, Po, Ps*);
-nonPunctuationCharacter = 
-
-whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
-unicodeWhitespaceCharacter = (*any code point in the Unicode Zs class, or tab, carriageReturn, newline, formFeed*);
-nonWhitespaceCharacter = (*any character that is not a whitespaceCharacter*);
-
-whitespace = whitespaceCharacter, {whitespaceCharacter};
-unicodeWhitespace = unicodeWhitespaceCharacter, {unicodeWhitespaceCharacter};
-nonUnicodeWhitespace = nonWhitespaceCharacter, {nonWhitespaceCharacter};
-
-nonUnicodeWhitespacenonPunctuationCharacter = (*anything else but punctuationCharacter and unicodeWhitespace*)
-
-lineEnding = newline | carriageReturn;
-nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
-blankLine = {(space | tab)}, lineEnding;
-line = nonBlankLine | blankLine;
+hardLineBreak = ("  " | "\\"), "\n";
 
 textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
-indentation = 3 * [space];
-
-(*Chapter 2.2 Tabs*)
-
-(*ignored, because this specifies how tabs are interpreted, not how they are parsed*)
-
-(*Chapter 2.3 Insecure Characters*)
-
-(*ignored, because this specifies that the Unicode character *+0000 has to be replaced with the Replacement Character U+FFFD*)
-
-(*Chapter 3 Blocks and Inlines*)
-
-(*parsing of blocks take precedence over parsing of inlines*)
-block = containerBlock | leafBlock;
-
-(*Chapter 4 Leaf Blocks*)
-
-leafBlock = thematicBreak | atxHeading | setextHeading;
-containerBlock = (*TODO*)
-inline = (*TODO*)
-paragraphMax3SpacesIndent = (*TODO*) (*"The heading content can be indented up to three spaces"*)
-
-(*this takes precedence over thematicBreak: "If a line of dashes that meets the above conditions for being a thematic break could also be interpreted as the underline of a setext heading, the interpretation as a setext heading takes precedence."*)
-level1SetextHeadingUnderline = indentation, ("=", {"="}), {space}, lineEnding;
-level2SetextHeadingUnderline = indentation, ("-", {"-"}), {space}, lineEnding;
-setextHeadingLevel1 = paragraphMax3SpacesIndent, level1SetextHeadingUnderline;
-setextHeadingLevel2 = paragraphMax3SpacesIndent, level2SetextHeadingUnderline;
-
-thematicBreak = (indentation), (3 * ([space], "-"), {([space], "-")}) | (3 * ([space], "_"), {([space], "_")}) | (3 * ([space], "*"), {([space], "*")}), lineEnding;
-
-atxClosingSequence = [space, {"#"}, {space}], lineEnding;
-atxHeading1 = indentation, "#", space, inline, atxClosingSequence;
-atxHeading2 = indentation, "##", space, inline, atxClosingSequence;
-atxHeading3 = indentation, "###", space, inline, atxClosingSequence;
-atxHeading4 = indentation, "####", space, inline, atxClosingSequence;
-atxHeading5 = indentation, "#####", space, inline, atxClosingSequence;
-atxHeading6 = indentation, "######", space, inline, atxClosingSequence;
-atxHeading = atxHeading1 | atxHeading2 | atxHeading3 | atxHeading4 | atxHeading5 | atxHeading6;
-
-indentedChunk = (4 * space, {space}, nonBlankLine), {(4 * space, {space}, nonBlankLine)};
-indentedCodeBlock = (indentedChunk, blankLine), {(indentedChunk, blankLine)}, [indentedChunk];
-
-(*the specification allows more than 3 backticks or tildes, but I ignored this deliberately, because then it would be very difficult to match the open and close sequences*)
-(*same with indentation, both of it can be done in interpretation*)
-backtickCodeFence = 3 * "~";
-tildeCodeFence = 3 * "~";
-backtickCodeFenceEndSequence = indentation, backtickCodeFence, {space};
-tildeCodeFenceEndSequence = indentation, tildeCodeFence, {space};
-infoString = textualContent;
-fencedCodeBlock = (indentation, backtickCodeFence, [infoString], lineEnding,
-				  {line},
-				  backtickCodeFenceEndSequence | endOfDocument)
-				  |
-				  (indentation, tildeCodeFence, [infoString], lineEnding,
-				  line, {line},
-				  tildeCodeFenceEndSequence | endOfDocument);
-			
-(*TODO: refine this, it is far from correct, but html is not so important, so it has a low priority*)
-htmlStartCondition1 = "<script" | "<pre" | "<style", (space | ">", nonBlankLine) | lineEnding;
-htmlEndCondition1 = "</script>" | "</pre>" | "</style>";
-htmlStartCondition2 = "<!--", line;
-htmlEndCondition2 = "-->";
-htmlStartCondition3 = "<?", line;
-htmlEndCondition3 = "?>";
-htmlStartCondition4 = "<!", UppercaseAsciiLetter, line;
-htmlEndCondition4 = "!>";
-htmlStartCondition5 = "<![CDATA[", line;
-htmlEndCondition5 = ">";
-htmlStartCondition6 = "<", ["/"], (*TODO: insert all tags*);
-htmlEndCondition6 = line, blankLine;
-htmlStartCondition7 = "<", tagName, {whitespace}, lineEnding;
-htmlEndCondition7 = line, blankLine;
-htmlBlock1 = htmlStartCondition1, {line}, htmlEndCondition1;
-htmlBlock2 = htmlStartCondition2, {line}, htmlEndCondition2;
-htmlBlock3 = htmlStartCondition3, {line}, htmlEndCondition3;
-htmlBlock4 = htmlStartCondition4, {line}, htmlEndCondition4;
-htmlBlock5 = htmlStartCondition5, {line}, htmlEndCondition5;
-htmlBlock6 = htmlStartCondition6, {line}, htmlEndCondition6;
-htmlBlock7 = htmlStartCondition7, {line}, htmlEndCondition7;
-htmlBlock = htmlBlock1 | htmlBlock2 | htmlBlock3 | htmlBlock4 | htmlBlock5 | htmlBlock6 | htmlBlock7;
-
-paragraph = nonBlankLine, {nonBlankLine};	(*lowest priority of block elements*)
-
-(*Chapter 5 Container Blocks*)
-
-blockQuteMarker = indentation, ">", [" "];
-blockQuotes = blockQuteMarker, line, {blockQuteMarker, line};   (*2. Laziness is ignored for now*)
-
-bulletListMarker = "-" | "+" | "*";
-orderedListMarker = digit, 8 * [digit], "." | ")";
-listMarker = bulletListMarker | orderedListMarker;
-bulletListItem = bulletListMarker, space, 3 * space, indentedBlock | indentedContainer;   (*indentedBlock and indentedContainer are indented by the length of listMarker + 1-4 + the amount of spaces after listMarker*)
-orderedListItem = orderedListMarker, space, 3 * space, indentedBlock | indentedContainer;   (*indentedBlock and indentedContainer are indented by the length of listMarker + 1-4 + the amount of spaces after listMarker*)
-orderedList = orderedListItem, [blankLine], {orderedListItem, [blankLine]};
-bulletList = bulletListItem, [blankLine], {bulletListItem, [blankLine]};
-
-(*Chapter 6 Inlines*)
-
-escapedAsciiPunctuationCharacter = "\", asciiPunctuationCharacter;
-
-(*Entity and numeric character references are relatively useless, so they are not implemented for now*)
-entityReference = 
-decimalNumericCharacter = 
-hexadecimalNumericCharacter = 
-
-backtickString = "`", {"`"};
-codeSpan = backtickString, textualContent, backtickString;  (*TODO: the 2 backtickStrings must be of the same length*)
-
-(*the possibility that underline ("_") can create emphasis is deliberately ignored for now*) 
-delimiterRun = "*", {"*"};
-delimiterRunLeftFlanking = (delimiterRun, nonUnicodeWhitespacenonPunctuationCharacter) | ((punctuationCharacter | unicodeWhitespace), delimiterRun, nonUnicodeWhitespace);
-delimiterRunRightFlanking = (nonUnicodeWhitespace, delimiterRun, (unicodeWhitespace | punctuationCharacter)) | (nonUnicodeWhitespacenonPunctuationCharacter, delimiterRun);
-openEmphasis = ("*", nonUnicodeWhitespacenonPunctuationCharacter) | ((punctuationCharacter | unicodeWhitespace), "*", nonUnicodeWhitespace);
-closeEmphasis = (nonUnicodeWhitespace, "*", (unicodeWhitespace | punctuationCharacter)) | (nonUnicodeWhitespacenonPunctuationCharacter, "*");
-openStrong = ("**", nonUnicodeWhitespacenonPunctuationCharacter) | ((punctuationCharacter | unicodeWhitespace), "**", nonUnicodeWhitespace);
-closeStrong = (nonUnicodeWhitespace, "**", (unicodeWhitespace | punctuationCharacter)) | (nonUnicodeWhitespacenonPunctuationCharacter, "**");
-emphasis = openEmphasis, inline, closeEmphasis;
-strong = openStrong, inline, closeStrong;
-
-linkText = "[", inlinesExceptLink, "]"; (*This uses the outer most link definition, contrary to the specification, which says the inner most one should be used, TODO*)
-linkLabel = "[", nonWhitespaceCharacter, 998 * [nonWhitespaceCharacter], "]";
-linkDestination = ("<", {nonWhitespaceCharacter}, ">") | (nonWhitespaceCharacter, {nonWhitespaceCharacter});
-linkTitle = ('"', {character}, '"') | ("'", {character}, "'") | ("(", {character}, ")");
-inlineLink = linkText, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
-fullReferenceLink = linkText, linkLabel;
-collapsedReferenceLink = linkLabel, "[]";
-shortcutReferenceLink = linkLabel;
-
-linkReferenceDefinition = indentation, linkLabel, ":", [whitespace], linkDestination, [whitespace], [space, [linkTitle]], {whitespace}, lineEnding;
-
-imageDescription = "![", inlines, "]";  (*This uses the outer most image description, contrary to the specification, which says the inner most one should be used, TODO*)
-inlineImage = imageDescription, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
-fullReferenceImage = imageDescription, linkLabel;
-collapsedReferenceImage = linkLabel, "[]";
-shortcutReferenceImage = linkLabel;
-
-scheme = asciiLetter, (asciiLetter | asciiDigit | "+" | "." | "-"), 30 * [asciiLetter | asciiDigit | "+" | "." | "-"];
-absoluteUri = scheme, ":", {nonAsciiWhitespaceOrControlOrLessThanOrGreaterThanCharacter};
-autolinkLabel = absoluteUri;
-autolink = "<", autolinkLabel, ">";
-
-emailAddress = 
-emailAutolink = "<", emailAddress, ">";
-
-(*Raw HTML is deliberately ignored for now*)
-
-hardLineBreak = (space, space, {space}, lineEnding) | ("\", lineEnding);
-softLineBreak = lineEnding;
+(*End Inlines*)
