@@ -73,7 +73,7 @@ fencedCodeBlock = ("```", [infoString], lineEnding,
 linkReferenceDefinition = linkLabel, ":", linkDestination, [space, [linkTitle]], {space}, lineEnding;
 
 
-paragraph = nonBlankLine, {nonBlankLine};	(*TODO: Interprete the Lines as Inlines*)
+paragraph = inlineLine, {inlineLine};
 
 blankLines = blankLine, {blankLine};
 
@@ -81,6 +81,11 @@ blankLines = blankLine, {blankLine};
 (*End Block Elements*)
 
 (*Start Inlines*)
+
+inlineLine = inlineWithoutLineBreak, {inlineWithoutLineBreak}, lineBreak;
+
+inline = codeSpan | emphasis | strongEmphasis | inlineLink | fullReferenceLink | image | hardLineBreak | softLineBreak | textualContent;
+inlineWithoutLineBreak = codeSpan | emphasis | strongEmphasis | inlineLink | fullReferenceLink | image | textualContent;
 
 codeSpan = "`", textualContent, "`";
 emphasis = "*", textualContent, "*";
@@ -99,7 +104,9 @@ linkTitle = ('"', {character}, '"');	(*TODO: Define that the character must not 
 image = imageDescription, "(", [whitespace], [linkDestination], [whitespace, linkTitle], [whitespace], ")";
 imageDescription = "![", textualContent, "]";
 
+lineBreak = hardLineBreak | softLineBreak;
 hardLineBreak = ("  " | "\\"), "\n";
+softLineBreak = "\n";
 
 textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
 (*End Inlines*)
