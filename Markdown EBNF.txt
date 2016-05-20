@@ -23,18 +23,10 @@ blockQuote = blockQuteMarker, line, {blockQuteMarker, line};   (*2. Laziness is 
 bulletListMarker = "-";	(*plus and star ignored for now*)
 orderedListMarker = digit, "." | ")";
 listMarker = bulletListMarker | orderedListMarker;
-bulletListItem = bulletListMarker, 3 * space, indentedLeafBlock;   
-orderedListItem = orderedListMarker, 2 * space, indentedLeafBlock; 
+bulletListItem = bulletListMarker, 3 * space, listItemLeafBlock;   
+orderedListItem = orderedListMarker, 2 * space, listItemLeafBlock; 
 orderedList = orderedListItem, [blankLine], {orderedListItem, [blankLine]};
 bulletList = bulletListItem, [blankLine], {bulletListItem, [blankLine]};
-
-(*atxHeading is not multiline, so it does not have to be indented*)
-indentedLeafBlock = atxHeading | indentedFencedCodeBlock | indentedParagraph;
-
-indentedFencedCodeBlock = "```", [infoString], lineEnding,
-                          {4 * space, line},
-                          4 * space, "```", lineEnding;
-indentedParagraph = nonBlankLine, {4 * space, nonBlankLine};	(*TODO: Interprete the Lines as Inlines*)
 
 (*End Container Block Elements*)
 
@@ -136,3 +128,15 @@ punctuationCharacter = asciiPunctuationCharacter | (*anything in the Unicode Cla
 nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
 
 characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
+
+(*Particular Contexts*)
+
+(*List Item*)
+
+(*atxHeading is not multiline, so it does not have to be listItem*)
+listItemLeafBlock = atxHeading | listItemFencedCodeBlock | listItemParagraph;
+
+listItemFencedCodeBlock = "```", [infoString], lineEnding,
+                          {4 * space, line},
+                          4 * space, "```", lineEnding;
+listItemParagraph = inlineLine, {4 * space, inlineLine};
