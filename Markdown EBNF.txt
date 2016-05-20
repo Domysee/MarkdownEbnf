@@ -9,23 +9,6 @@ Sometimes, a blank Line must be present after a Block Element to distinguish it 
 
 Markdown = block, {block};
 
-(*Generic String Terms*)
-
-newline = U+000A;
-carriageReturn = U+000D;
-space = U+0020;
-tab = U+0009;
-lineEnding = newline | carriageReturn;
-characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
-whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
-unicodeWhitespaceCharacter = (*any code point in the Unicode Zs class, or tab, carriageReturn, newline, formFeed*);
-nonWhitespaceCharacter = (*any character that is not a whitespaceCharacter*);
-
-blankLine = {(space | tab)}, lineEnding;
-nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
-
-characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
-
 (*Start Block Elements*)
 
 block = containerBlock | leafBlock;
@@ -120,3 +103,29 @@ hardLineBreak = ("  " | "\\"), "\n";
 
 textualContent = characterWithoutLinebreak, {characterWithoutLinebreak};
 (*End Inlines*)
+
+(*Generic String Terms*)
+
+newline = U+000A;
+carriageReturn = U+000D;
+lineEnding = newline | carriageReturn;
+
+space = U+0020;
+tab = U+0009;
+blankLine = {(space | tab)}, lineEnding;
+
+lineTabulation = U+000B;
+formFeed = U+000C;
+whitespaceCharacter = newline | carriageReturn | space | tab | lineTabulation | formFeed;
+whitespace = whitespaceCharacter, {whitespaceCharacter};
+
+unicodeWhitespaceCharacter = (*any code point in the Unicode Zs class*) | tab | carriageReturn | newline | formFeed;
+unicodeWhitespace = unicodeWhitespaceCharacter, {unicodeWhitespaceCharacter};
+
+nonWhitespaceCharacter = (*any character that is not a whitespaceCharacter*);
+asciiPunctuationCharacter = "!" | '"' | "#" | "$" | "%" | "&" | "'" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | "<" | "=" | ">" | "?" | "@" | "[" | "\\" | "]" | "^" | "_" | "`" | "{" | "|" | "}" | "~";
+punctuationCharacter = asciiPunctuationCharacter | (*anything in the Unicode Classes Pc, Pd, Pe, Pf, Pi, Po, Ps*)
+
+nonBlankLine = nonWhitespaceCharacter, {characterWithoutLinebreak}, lineEnding;
+
+characterWithoutLinebreak = (*Unicode code point except newline (U+000A) and carriage return (U+000D)*);
