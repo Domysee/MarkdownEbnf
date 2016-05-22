@@ -18,7 +18,7 @@ block = containerBlock | leafBlock;
 containerBlock = blockQuote;
 
 blockQuteMarker = ">", [" "];
-blockQuote = blockQuteMarker, line, {blockQuteMarker, line};   (*2. Laziness is ignored for now*)
+blockQuote = blockQuteMarker, inlineLine, {blockQuteMarker, inlineLine};   (*2. Laziness is ignored for now*)
 
 bulletListMarker = "-";	(*plus and star ignored for now*)
 orderedListMarker = digit, "." | ")";
